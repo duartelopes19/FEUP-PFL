@@ -4,7 +4,7 @@ explain:-
     nl, nl,
     write('1st PHASE (DROP) - On each turn, each player drops a stone from the reserve to any empty space on the board which is not adjacent (orthogonal) to a friendly stone. If a player cannot drop more stones, he must pass. This continues until all stones are placed on the board, or no more stones can be dropped.'),
     nl, nl,
-    write('2nd PHASE (place) - On each turn, each player places a stone to an empty adjacent (orthogonal) cell. If he is able to make 3 in a rows (not more or less) he may capture one enemy stone.'),
+    write('2nd PHASE (MOVE) - On each turn, each player moves a stone to an empty adjacent (orthogonal) cell. If he is able to make 3 in a rows (not more or less) he may capture one enemy stone.'),
     nl, nl,
     write('GOAL - Wins the player who capture all of his opponents stones'),
     nl, nl.
