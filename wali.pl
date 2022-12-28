@@ -36,7 +36,7 @@ phaseOne(Board,Player):-
     write('Column: '), read(Col),
     nl, nl,
     Cell is (Line - 1) * 6 + Col,
-    move(Board,Cell,Player).
+    legal(Board,Cell,Player) -> move(Board,Cell,Player); write('Illegal move.'), phaseOne(Board,Player).
     % NICE
 
 /*
@@ -46,6 +46,7 @@ M N O P Q R
 S T U V W X
 Y Z AA AB AC AD
 */
+
 xlegal([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],Cell,Player):-
     Cell==1 -> B\='X', G\='X', H\='X';
     Cell==2 -> A\='X', G\='X', H\='X', I\='X', C\='X';
@@ -77,6 +78,7 @@ xlegal([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],Cell,Pl
     Cell==28 -> AC\='X', W\='X', V\='X', U\='X', AA\='X';
     Cell==29 -> AD\='X', X\='X', W\='X', AB\='X', V\='X';
     Cell==30 -> X\='X', W\='X', AC\='X'.
+
 
 olegal([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],Cell,Player):-
     Cell==1 -> B\='O', G\='O', H\='O';
@@ -110,15 +112,16 @@ olegal([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],Cell,Pl
     Cell==29 -> AD\='O', X\='O', W\='O', AB\='O', V\='O';
     Cell==30 -> X\='O', W\='O', AC\='O'.
 
+
 legal(Board,Cell,Player):-
     Player==1 -> xlegal(Board,Cell,Player);
-    Player==2 -> olegal(Board,Cell,Player);
-    phaseOne(Board,Player).
+    Player==2 -> olegal(Board,Cell,Player).
         
     
 move(Board, Cell, Player):-
-    Player==1 -> legal(Board,Cell,Player),write('MegaPila'),xmove(Board, Cell, NewBoard, NewPlayer), phaseOne(NewBoard, NewPlayer);
-    Player==2 -> legal(Board,Cell,Player),write('MegaPila'), omove(Board, Cell, NewBoard, NewPlayer), phaseOne(NewBoard, NewPlayer);
+    Player==1 -> xmove(Board, Cell, NewBoard, NewPlayer), phaseOne(NewBoard, NewPlayer);
+    Player==2 -> omove(Board, Cell, NewBoard, NewPlayer), phaseOne(NewBoard, NewPlayer).
+    
 
 xmove([' ',B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 1, ['X',B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],2).
 xmove([A,' ',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 2, [A,'X',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],2).
@@ -151,6 +154,7 @@ xmove([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,' ',AC,AD],  28, [
 xmove([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,' ',AD],  29, [A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,'X',AD],2).
 xmove([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,' '],  30, [A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,'X'],2).
 xmove(Board, _, Board,1) :- write('Illegal move.').
+
 
 omove([' ',B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 1, ['O',B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],1).
 omove([A,' ',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 2, [A,'O',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],1).
