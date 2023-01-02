@@ -20,26 +20,40 @@ menu:-
 chooseGame(X):-
     X==1 -> phaseOne([' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],1);
     X==2 -> phaseTwo([' ','X','O','X','X',' ',' ',' ',' ','O','O',' ','O',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],1);
-    X==3 -> pcHuman;
-    X==4 -> pcPc.
+    X==3 -> phaseOne(['X',' ','O',' ','X',' ','O',' ','X',' ','O',' ','X',' ','O',' ','X',' ','O',' ','X',' ','O',' ','X',' ','O',' ','X',' '],1);
+    X==4 -> phaseOne(['X',' ','X',' ',' ','X',' ',' ',' ',' ',' ',' ',' ','O',' ','O',' ',' ',' ','X',' ',' ',' ',' ','O',' ','O',' ','O',' '],1).
+
 
 draw([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD]):- nl, nl, write([A,B,C,D,E,F]), nl, write([G,H,I,J,K,L]), nl, write([M,N,O,P,Q,R]), nl, write([S,T,U,V,W,X]), nl, write([Y,Z,AA,AB,AC,AD]), nl, nl.
 
+testPlayerMoves(Board,Player):-
+    Player==1 -> testPlayer1Moves(Board,1);
+    Player==2 -> testPlayer2Moves(Board,2).
+
+testPlayer1Moves(Board,Player):- valid_moves(Board,Player) -> write(''); write('No valid moves left for Player 1!'), phaseOne(Board,2).
+testPlayer2Moves(Board,Player):- valid_moves(Board,Player) -> write(''); write('No valid moves left for Player 2!'), phaseOne(Board,1).
+
+testBoard(Board):- valid_moves(Board,2); valid_moves(Board,1). 
+
 phaseOne(Board,Player):-
+    testBoard(Board) ->(
     nl, nl,
     write('1st PHASE - DROP'),
     draw(Board),
     write('Player '), write(Player), write(', choose a space to place a stone.'),
     nl, nl,
+    testPlayerMoves(Board,Player),
     write('Line: '), read(Line),
     nl,
     write('Column: '), read(Col),
     nl,
     Cell is (Line - 1) * 6 + Col,
-    legal(Board,Cell,Player) -> place(Board,Cell,Player); write('Illegal place.'), phaseOne(Board,Player).
+    legal(Board,Cell,Player) -> place(Board,Cell,Player); write('Illegal place.'), phaseOne(Board,Player));
+    phaseTwo(Board,1).
     % NICE
 
 phaseTwo(Board,Player):-
+    testBoardWin(Board),
     nl, nl,
     write('2nd PHASE - MOVE'),
     draw(Board),
@@ -52,7 +66,7 @@ phaseTwo(Board,Player):-
     nl,
     write('Move (w,a,s,d): '), read(Move),
     nl,
-    move(Board,Cell,Move,Player) -> write('teste') ; write('Illegal move.'), phaseTwo(Board,Player).
+    move(Board,Cell,Move,Player).
     % NICE
 
 phaseThree(Board,Player):-
@@ -64,7 +78,7 @@ phaseThree(Board,Player):-
     write('Column: '), read(Col),
     Cell is (Line - 1) * 6 + Col,
     nl, nl,
-    eat(Board,Cell,Player) -> write('teste2') ; write('Illegal stone.'), phaseThree(Board,Player).
+    eat(Board,Cell,Player).
 
 eat(Board,Cell,Player):-
     Player==1 -> capture('O',Board, Cell, NewBoard), blabla(Board,NewBoard,1,2);
@@ -77,8 +91,8 @@ legal(Board,Cell,Player):-
     Player==2 -> valid(Board,Cell,'O').
         
 place(Board, Cell, Player):-
-    Player==1 -> xplace(Board, Cell, NewBoard, NewPlayer), phaseOne(NewBoard, NewPlayer);
-    Player==2 -> oplace(Board, Cell, NewBoard, NewPlayer), phaseOne(NewBoard, NewPlayer).
+    Player==1 -> xplace(Board, Cell, NewBoard, NewPlayer), phaseOne(NewBoard,NewPlayer);
+    Player==2 -> oplace(Board, Cell, NewBoard, NewPlayer), phaseOne(NewBoard,NewPlayer).
 
 move(Board, Cell, Move, Player):-
     Player==1 -> xmove(Board, Cell, Move, NewBoard, NewPlayer), checkThreeRow(NewBoard,Player,NewPlayer);
@@ -94,49 +108,219 @@ S  T  U  V  W  X
 Y  Z AA AB AC AD
 */
 
-threeRow(Board, Player) :- Player==1 -> linethreeRow(Board, 'X'); Player==2 -> linethreeRow(Board, 'O').
-threeRow(Board, Player) :- Player==1 -> colthreeRow(Board, 'X'); Player==2 -> colthreeRow(Board, 'O').
+testBoardWin(Board):-
+    owin(Board) -> draw(Board), write('Player 2 WINS!');
+    xwin(Board) -> draw(Board), write('Player 1 WINS!').
 
-linethreeRow(Board, Player) :- Board = [Player,Player,Player,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
-linethreeRow(Board, Player) :- Board = [_,Player,Player,Player,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
-linethreeRow(Board, Player) :- Board = [_,_,Player,Player,Player,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
-linethreeRow(Board, Player) :- Board = [_,_,_,Player,Player,Player,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
-linethreeRow(Board, Player) :- Board = [_,_,_,_,_,_,Player,Player,Player,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
-linethreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,Player,Player,Player,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
-linethreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,Player,Player,Player,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
-linethreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,Player,Player,Player,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
-linethreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,Player,Player,Player,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
-linethreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,Player,Player,Player,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
-linethreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,Player,Player,Player,_,_,_,_,_,_,_,_,_,_,_,_,_].
-linethreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,Player,Player,Player,_,_,_,_,_,_,_,_,_,_,_,_].
-linethreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,Player,Player,Player,_,_,_,_,_,_,_,_,_].
-linethreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,Player,Player,Player,_,_,_,_,_,_,_,_].
-linethreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,Player,Player,Player,_,_,_,_,_,_,_].
-linethreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,Player,Player,Player,_,_,_,_,_,_].
-linethreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,Player,Player,Player,_,_,_].
-linethreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,Player,Player,Player,_,_].
-linethreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,Player,Player,Player,_].
-linethreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,Player,Player,Player].
+owin([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD]) :-
+    A \= 'X',
+    B \= 'X',
+    C \= 'X',
+    D \= 'X',
+    E \= 'X',
+    F \= 'X',
+    G \= 'X',
+    H \= 'X',
+    I \= 'X',
+    J \= 'X',
+    K \= 'X',
+    L \= 'X',
+    M \= 'X',
+    N \= 'X',
+    O \= 'X',
+    P \= 'X',
+    Q \= 'X',
+    R \= 'X',
+    S \= 'X',
+    T \= 'X',
+    U \= 'X',
+    V \= 'X',
+    W \= 'X',
+    X \= 'X',
+    Y \= 'X',
+    Z \= 'X',
+    AA \= 'X',
+    AB \= 'X',
+    AC \= 'X',
+    AD \= 'X'.
+
+xwin([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD]) :-
+    A \= 'O',
+    B \= 'O',
+    C \= 'O',
+    D \= 'O',
+    E \= 'O',
+    F \= 'O',
+    G \= 'O',
+    H \= 'O',
+    I \= 'O',
+    J \= 'O',
+    K \= 'O',
+    L \= 'O',
+    M \= 'O',
+    N \= 'O',
+    O \= 'O',
+    P \= 'O',
+    Q \= 'O',
+    R \= 'O',
+    S \= 'O',
+    T \= 'O',
+    U \= 'O',
+    V \= 'O',
+    W \= 'O',
+    X \= 'O',
+    Y \= 'O',
+    Z \= 'O',
+    AA \= 'O',
+    AB \= 'O',
+    AC \= 'O',
+    AD \= 'O'.
+    
+
+valid_moves(Board,Player) :-
+    legal(Board,1,Player);
+    legal(Board,2,Player);
+    legal(Board,3,Player);
+    legal(Board,4,Player);
+    legal(Board,5,Player);
+    legal(Board,6,Player);
+    legal(Board,7,Player);
+    legal(Board,8,Player);
+    legal(Board,9,Player);
+    legal(Board,10,Player);
+    legal(Board,11,Player);
+    legal(Board,12,Player);
+    legal(Board,13,Player);
+    legal(Board,14,Player);
+    legal(Board,15,Player);
+    legal(Board,16,Player);
+    legal(Board,17,Player);
+    legal(Board,18,Player);
+    legal(Board,19,Player);
+    legal(Board,20,Player);
+    legal(Board,21,Player);
+    legal(Board,22,Player);
+    legal(Board,23,Player);
+    legal(Board,24,Player);
+    legal(Board,25,Player);
+    legal(Board,26,Player);
+    legal(Board,27,Player);
+    legal(Board,28,Player);
+    legal(Board,29,Player);
+    legal(Board,30,Player).
 
 
-colthreeRow(Board, Player) :- Board = [Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
-colthreeRow(Board, Player) :- Board = [_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
-colthreeRow(Board, Player) :- Board = [_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
-colthreeRow(Board, Player) :- Board = [_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
-colthreeRow(Board, Player) :- Board = [_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,_,_,_,_,_,_,_,_].
-colthreeRow(Board, Player) :- Board = [_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,_,_,_,_,_,_,_].
-colthreeRow(Board, Player) :- Board = [_,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,_,_,_,_,_,_].
-colthreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,_,_,_,_,_].
-colthreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,_,_,_,_].
-colthreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,_,_,_].
-colthreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,_,_].
-colthreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,_].
-colthreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_].
-colthreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_].
-colthreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_].
-colthreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_].
-colthreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_].
-colthreeRow(Board, Player) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player].
+threeRow(Board, Player) :- Player==1 -> linethreeRow(Board, 'X', 'O'); Player==2 -> linethreeRow(Board, 'O', 'X').
+threeRow(Board, Player) :- Player==1 -> colthreeRow(Board, 'X', 'O'); Player==2 -> colthreeRow(Board, 'O', 'X').
+
+linethreeRow(Board, Player, OtherPlayer) :- Board = [Player,Player,Player,' ',_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [' ',Player,Player,Player,' ',_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [OtherPlayer,Player,Player,Player,' ',_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [' ',Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [OtherPlayer,Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,' ',Player,Player,Player,' ',_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,OtherPlayer,Player,Player,Player,' ',_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,' ',Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,OtherPlayer,Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,' ',Player,Player,Player,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,OtherPlayer,Player,Player,Player,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,Player,Player,Player,' ',_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,' ',Player,Player,Player,' ',_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,OtherPlayer,Player,Player,Player,' ',_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,' ',Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,OtherPlayer,Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,' ',Player,Player,Player,' ',_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player,' ',_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,' ',Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,' ',Player,Player,Player,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,Player,Player,Player,' ',_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,' ',Player,Player,Player,' ',_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player,' ',_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,' ',Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,' ',Player,Player,Player,' ',_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player,' ',_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,' ',Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,' ',Player,Player,Player,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player,_,_,_,_,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,Player,Player,Player,' ',_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,' ',Player,Player,Player,' ',_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player,' ',_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,' ',Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,' ',Player,Player,Player,' ',_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player,' ',_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,' ',Player,Player,Player,OtherPlayer,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player,OtherPlayer,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,' ',Player,Player,Player,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player,_,_,_,_,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,Player,Player,Player,' ',_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,Player,Player,Player,OtherPlayer,_,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,' ',Player,Player,Player,' ',_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player,' ',_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,' ',Player,Player,Player,OtherPlayer,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player,OtherPlayer,_].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,' ',Player,Player,Player,' '].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player,' '].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,' ',Player,Player,Player,OtherPlayer].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player,OtherPlayer].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,' ',Player,Player,Player].
+linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player].
+
+colthreeRow(Board, Player, OtherPlayer) :- Board = [Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' ',_,_,_,_,_,_,_,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' ',_,_,_,_,_,_,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' ',_,_,_,_,_,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' ',_,_,_,_,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' ',_,_,_,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,OtherPlayer,_,_,_,_,_,_,_,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,OtherPlayer,_,_,_,_,_,_,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,OtherPlayer,_,_,_,_,_,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,OtherPlayer,_,_,_,_,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,OtherPlayer,_,_,_,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,OtherPlayer,_,_,_,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [' ',_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' ',_,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,' ',_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' ',_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,' ',_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' ',_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,' ',_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' ',_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,' ',_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' ',_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,' ',_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' '].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' ',_,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' ',_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' ',_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' ',_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' ',_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' '].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [' ',_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,OtherPlayer,_,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,' ',_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,OtherPlayer,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,' ',_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,OtherPlayer,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,' ',_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,OtherPlayer,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,' ',_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,OtherPlayer,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,' ',_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,OtherPlayer].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,OtherPlayer,_,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,OtherPlayer,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,OtherPlayer,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,OtherPlayer,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,OtherPlayer,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,OtherPlayer].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,' ',_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,' ',_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,' ',_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,' ',_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,' ',_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,' ',_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_].
+colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player].
 
 
 xmove(['X',' ',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 1, 'd', [' ','X',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],2).
@@ -342,36 +526,36 @@ omove(Board, _, _, Board,2) :- write('Illegal move.').
 
 
 valid([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],Cell,Player):-
-    Cell==1 -> B\=Player, G\=Player, H\=Player;
-    Cell==2 -> A\=Player, G\=Player, H\=Player, I\=Player, C\=Player;
-    Cell==3 -> B\=Player, I\=Player, H\=Player, J\=Player, D\=Player;
-    Cell==4 -> C\=Player, E\=Player, I\=Player,J\=Player,K\=Player;
-    Cell==5 -> D\=Player, F\=Player, J\=Player, K\=Player,L\=Player;
-    Cell==6 -> E\=Player, K\=Player, L\=Player;
-    Cell==7 -> A\=Player, B\=Player, H\=Player,M\=Player,N\=Player;
-    Cell==8 -> A\=Player, B\=Player, C\=Player, G\=Player, I\=Player, M\=Player, N\=Player, O\=Player;
-    Cell==9 -> B\=Player, C\=Player, D\=Player, H\=Player, J\=Player, N\=Player, O\=Player, P\=Player;
-    Cell==10 -> C\=Player, I\=Player, O\=Player, P\=Player, Q\=Player, K\=Player, E\=Player, D\=Player;
-    Cell==11-> D\=Player, E\=Player, F\=Player, J\=Player, L\=Player, P\=Player, Q\=Player, R\=Player;
-    Cell==12 -> E\=Player, F\=Player, K\=Player, Q\=Player, R\=Player;
-    Cell==13 -> G\=Player, H\=Player, N\=Player, S\=Player, T\=Player;
-    Cell==14 -> G\=Player, H\=Player, I\=Player, M\=Player, O\=Player, S\=Player, T\=Player, U\=Player;
-    Cell==15 -> H\=Player, I\=Player, J\=Player, N\=Player, P\=Player, T\=Player, U\=Player, V\=Player;
-    Cell==16 -> I\=Player, J\=Player, K\=Player, O\=Player, Q\=Player, U\=Player, V\=Player, W\=Player;
-    Cell==17 -> J\=Player, K\=Player, L\=Player, P\=Player, R\=Player, V\=Player, W\=Player, X\=Player;
-    Cell==18 -> K\=Player, L\=Player, Q\=Player, W\=Player, X\=Player;
-    Cell==19 -> M\=Player, N\=Player, T\=Player, Y\=Player, Z\=Player;
-    Cell==20 -> M\=Player, N\=Player, O\=Player, S\=Player, U\=Player, Y\=Player, Z\=Player, AA\=Player;
-    Cell==21 -> N\=Player, O\=Player, P\=Player, T\=Player, V\=Player, Z\=Player, AA\=Player, AB\=Player;
-    Cell==22 -> O\=Player, P\=Player, Q\=Player, U\=Player, W\=Player, AA\=Player, AB \=Player, AC\=Player;
-    Cell==23 -> P\=Player, Q\=Player, R\=Player, V\=Player, X\=Player, AB\=Player, AC\=Player, AD\=Player;
-    Cell==24 -> Q\=Player, R\=Player, W\=Player, AC\=Player, AD\=Player;
-    Cell==25-> S\=Player, T\=Player, Z\=Player;
-    Cell==26 -> S\=Player, T\=Player, U\=Player, Y\=Player, AA\=Player;
-    Cell==27 -> AB\=Player, V\=Player, U\=Player, T\=Player, Z\=Player;
-    Cell==28 -> AC\=Player, W\=Player, V\=Player, U\=Player, AA\=Player;
-    Cell==29 -> AD\=Player, X\=Player, W\=Player, AB\=Player, V\=Player;
-    Cell==30 -> X\=Player, W\=Player, AC\=Player.    
+    Cell==1 -> B\=Player, G\=Player, H\=Player, A==' ';
+    Cell==2 -> A\=Player, G\=Player, H\=Player, I\=Player, C\=Player, B== ' ';
+    Cell==3 -> B\=Player, I\=Player, H\=Player, J\=Player, D\=Player, C== ' ';
+    Cell==4 -> C\=Player, E\=Player, I\=Player,J\=Player,K\=Player, D== ' ';
+    Cell==5 -> D\=Player, F\=Player, J\=Player, K\=Player,L\=Player, E== ' ';
+    Cell==6 -> E\=Player, K\=Player, L\=Player, F== ' ';
+    Cell==7 -> A\=Player, B\=Player, H\=Player,M\=Player,N\=Player, G== ' ';
+    Cell==8 -> A\=Player, B\=Player, C\=Player, G\=Player, I\=Player, M\=Player, N\=Player, O\=Player,H== ' ';
+    Cell==9 -> B\=Player, C\=Player, D\=Player, H\=Player, J\=Player, N\=Player, O\=Player, P\=Player,I== ' ';
+    Cell==10 -> C\=Player, I\=Player, O\=Player, P\=Player, Q\=Player, K\=Player, E\=Player, D\=Player,J== ' ';
+    Cell==11-> D\=Player, E\=Player, F\=Player, J\=Player, L\=Player, P\=Player, Q\=Player, R\=Player,K== ' ';
+    Cell==12 -> E\=Player, F\=Player, K\=Player, Q\=Player, R\=Player,L== ' ';
+    Cell==13 -> G\=Player, H\=Player, N\=Player, S\=Player, T\=Player,M== ' ';
+    Cell==14 -> G\=Player, H\=Player, I\=Player, M\=Player, O\=Player, S\=Player, T\=Player, U\=Player,N== ' ';
+    Cell==15 -> H\=Player, I\=Player, J\=Player, N\=Player, P\=Player, T\=Player, U\=Player, V\=Player,O== ' ';
+    Cell==16 -> I\=Player, J\=Player, K\=Player, O\=Player, Q\=Player, U\=Player, V\=Player, W\=Player,P== ' ';
+    Cell==17 -> J\=Player, K\=Player, L\=Player, P\=Player, R\=Player, V\=Player, W\=Player, X\=Player,Q== ' ';
+    Cell==18 -> K\=Player, L\=Player, Q\=Player, W\=Player, X\=Player,R== ' ';
+    Cell==19 -> M\=Player, N\=Player, T\=Player, Y\=Player, Z\=Player,S== ' ';
+    Cell==20 -> M\=Player, N\=Player, O\=Player, S\=Player, U\=Player, Y\=Player, Z\=Player, AA\=Player,T== ' ';
+    Cell==21 -> N\=Player, O\=Player, P\=Player, T\=Player, V\=Player, Z\=Player, AA\=Player, AB\=Player,U== ' ';
+    Cell==22 -> O\=Player, P\=Player, Q\=Player, U\=Player, W\=Player, AA\=Player, AB \=Player, AC\=Player,V== ' ';
+    Cell==23 -> P\=Player, Q\=Player, R\=Player, V\=Player, X\=Player, AB\=Player, AC\=Player, AD\=Player,W== ' ';
+    Cell==24 -> Q\=Player, R\=Player, W\=Player, AC\=Player, AD\=Player,X== ' ';
+    Cell==25-> S\=Player, T\=Player, Z\=Player,Y== ' ';
+    Cell==26 -> S\=Player, T\=Player, U\=Player, Y\=Player, AA\=Player,Z== ' ';
+    Cell==27 -> AB\=Player, V\=Player, U\=Player, T\=Player, Z\=Player,AA== ' ';
+    Cell==28 -> AC\=Player, W\=Player, V\=Player, U\=Player, AA\=Player,AB== ' ';
+    Cell==29 -> AD\=Player, X\=Player, W\=Player, AB\=Player, V\=Player,AC== ' ';
+    Cell==30 -> X\=Player, W\=Player, AC\=Player,AD== ' '.    
 
 xplace([' ',B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 1, ['X',B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],2).
 xplace([A,' ',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 2, [A,'X',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],2).
