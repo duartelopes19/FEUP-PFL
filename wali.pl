@@ -25,7 +25,7 @@ chooseGame(X):-
     X==1 -> phaseOne([' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],1);
     X==2 -> phaseTwo([' ','X','O','X','X',' ',' ',' ',' ','O','O',' ','O',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],1);
     X==3 -> phaseOne(['X',' ','O',' ','X',' ','O',' ','X',' ','O',' ','X',' ','O',' ','X',' ','O',' ','X',' ','O',' ','X',' ','O',' ','X',' '],1);
-    X==4 -> phaseOne(['X',' ','X',' ',' ','X',' ',' ',' ',' ',' ',' ',' ','O',' ','O',' ',' ',' ','X',' ',' ',' ',' ','O',' ','O',' ','O',' '],1).
+    X==4 -> phaseTwo(['X',' ','X',' ',' ','X',' ',' ',' ',' ',' ',' ',' ','O',' ',' ',' ',' ',' ','X',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],1).
 
 /* predicate draw receives a Board and prints it in the correct scale (5x6) */
 draw([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD]):- nl, nl, write([A,B,C,D,E,F]), nl, write([G,H,I,J,K,L]), nl, write([M,N,O,P,Q,R]), nl, write([S,T,U,V,W,X]), nl, write([Y,Z,AA,AB,AC,AD]), nl, nl.
@@ -129,7 +129,7 @@ Y  Z AA AB AC AD
 */
 
 /* predicate win exits the program */
-win(Board):- nl,nl,halt(0).
+win(Board):- nl,nl,abort.
 
 /*predicate testBoardWin checks if either player has won the game*/
 testBoardWin(Board):-
