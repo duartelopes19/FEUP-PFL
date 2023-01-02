@@ -1,5 +1,7 @@
+/* predicate play/0 calls predicates explain and menu */
 play/0:- explain, menu.
 
+/* predicate explain prints the game rules*/
 explain:-
     nl, nl,
     write('1st PHASE (DROP) - On each turn, each player drops a stone from the reserve to any empty space on the board which is not adjacent (orthogonal) to a friendly stone. If a player cannot drop more stones, he must pass. This continues until all stones are placed on the board, or no more stones can be dropped.'),
@@ -9,6 +11,7 @@ explain:-
     write('GOAL - Wins the player who captures all of his opponents stones'),
     nl, nl.
 
+/* predicate menu prints an interface that presents to the user the diferent game modes and the input is passed to predicate chooseGame */
 menu:-
     nl, nl,
     write('Choose a playing mode by entering the number followed by a dot.'),
@@ -17,24 +20,32 @@ menu:-
     nl, nl,
     read(N), nl, chooseGame(N), nl, nl.
 
+/* predicate chooseGame takes the option chosen by the user and calls the respective predicate (NOT FINISHED!) */
 chooseGame(X):-
     X==1 -> phaseOne([' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],1);
     X==2 -> phaseTwo([' ','X','O','X','X',' ',' ',' ',' ','O','O',' ','O',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],1);
     X==3 -> phaseOne(['X',' ','O',' ','X',' ','O',' ','X',' ','O',' ','X',' ','O',' ','X',' ','O',' ','X',' ','O',' ','X',' ','O',' ','X',' '],1);
     X==4 -> phaseOne(['X',' ','X',' ',' ','X',' ',' ',' ',' ',' ',' ',' ','O',' ','O',' ',' ',' ','X',' ',' ',' ',' ','O',' ','O',' ','O',' '],1).
 
-
+/* predicate draw receives a Board and prints it in the correct scale (5x6) */
 draw([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD]):- nl, nl, write([A,B,C,D,E,F]), nl, write([G,H,I,J,K,L]), nl, write([M,N,O,P,Q,R]), nl, write([S,T,U,V,W,X]), nl, write([Y,Z,AA,AB,AC,AD]), nl, nl.
 
+/* predicate testPlayerMoves tests if there are still legal moves left for each player */
 testPlayerMoves(Board,Player):-
     Player==1 -> testPlayerMovesX(Board,1);
     Player==2 -> testPlayerMovesO(Board,2).
 
+/* predicate testPlayerMovesX tests if there are still legal moves left for player 1 */
 testPlayerMovesX(Board,Player):- valid_moves(Board,Player) -> write(''); write('No valid moves left for Player 1!'), phaseOne(Board,2).
+
+/* predicate testPlayerMovesO tests if there are still legal moves left for player 2 */
 testPlayerMovesO(Board,Player):- valid_moves(Board,Player) -> write(''); write('No valid moves left for Player 2!'), phaseOne(Board,1).
 
+/* predicate testBoard tests if there are any available moves left for either player by calling the predicate valid_moves */
 testBoard(Board):- valid_moves(Board,2); valid_moves(Board,1).
 
+/* predicate phaseOne resembles the first phase of the game and it's called recursively acting like a loop */
+/* prints the information of the phase, draws the board, asks the player to place a stone, checks the availability of such space and places it */
 phaseOne(Board,Player):-
     testBoard(Board) ->(
     nl, nl,
@@ -50,8 +61,9 @@ phaseOne(Board,Player):-
     Cell is (Line - 1) * 6 + Col,
     legal(Board,Cell,Player) -> place(Board,Cell,Player); write('Illegal place.'), phaseOne(Board,Player));
     phaseTwo(Board,1).
-    % NICE
 
+/* predicate phaseTwo resembles the seconde phase of the game and it's called recursively acting like a loop */
+/* prints the information of the phase, draws the board, asks the player to move a stone */
 phaseTwo(Board,Player):-
     testBoardWin(Board) -> win(Board);
     nl, nl,
@@ -67,8 +79,9 @@ phaseTwo(Board,Player):-
     write('Move (w,a,s,d): '), read(Move),
     nl,
     move(Board,Cell,Move,Player).
-    % NICE
 
+/* predicate phaseThree is called after a three in a row is found and that player can capture an enemy stone */
+/* prints the information of the phase and "eats" the stone the player wants to capture */
 phaseThree(Board,Player):-
     draw(Board),
     write('Player '), write(Player), write(', choose an opponent stone to capture.'),
@@ -80,20 +93,26 @@ phaseThree(Board,Player):-
     nl, nl,
     eat(Board,Cell,Player).
 
+/* predicate eat captures the desired stone making sure it's an enemy stone and not an empty space */
 eat(Board,Cell,Player):-
-    Player==1 -> capture('O',Board, Cell, NewBoard), blabla(Board,NewBoard,1,2);
-    Player==2 -> capture('X',Board, Cell, NewBoard), blabla(Board,NewBoard,2,1).
+    Player==1 -> capture('O',Board, Cell, NewBoard), checkSameBoard(Board,NewBoard,1,2);
+    Player==2 -> capture('X',Board, Cell, NewBoard), checkSameBoard(Board,NewBoard,2,1).
 
-blabla(Board,NewBoard,Player,NewPlayer):- Board==NewBoard -> phaseThree(Board,Player); phaseTwo(NewBoard,NewPlayer).
+/* predicate checkSameBoard checks if there were any changes to the board after capturing a stone */
+/* if an ilegal move was detected when capturing a stone, the board wont change and phaseThree has to be called again */
+checkSameBoard(Board,NewBoard,Player,NewPlayer):- Board==NewBoard -> phaseThree(Board,Player); phaseTwo(NewBoard,NewPlayer).
 
+/* predicate legal calls predicate valid with different arguments based on the player */
 legal(Board,Cell,Player):-
     Player==1 -> valid(Board,Cell,'X');
     Player==2 -> valid(Board,Cell,'O').
         
+/* predicate place calls the specific predicates to place a stone and returns to phaseOne */
 place(Board, Cell, Player):-
     Player==1 -> xplace(Board, Cell, NewBoard, NewPlayer), phaseOne(NewBoard,NewPlayer);
     Player==2 -> oplace(Board, Cell, NewBoard, NewPlayer), phaseOne(NewBoard,NewPlayer).
 
+/* predicate move calls the specific predicates to move a stone and calls predicate checkThreeRow the checks if a three in a row has occured */
 move(Board, Cell, Move, Player):-
     Player==1 -> xmove(Board, Cell, Move, NewBoard, NewPlayer), checkThreeRow(NewBoard,Player,NewPlayer);
     Player==2 -> omove(Board, Cell, Move, NewBoard, NewPlayer), checkThreeRow(NewBoard,Player,NewPlayer).
@@ -101,6 +120,7 @@ move(Board, Cell, Move, Player):-
 checkThreeRow(Board,Player,NewPlayer):- threeRow(Board,Player) -> phaseThree(Board,Player); phaseTwo(Board,NewPlayer).
 
 /*
+Example Board:
 A  B  C  D  E  F
 G  H  I  J  K  L
 M  N  O  P  Q  R
@@ -108,12 +128,15 @@ S  T  U  V  W  X
 Y  Z AA AB AC AD
 */
 
+/* predicate win exits the program */
 win(Board):- nl,nl,halt(0).
 
+/*predicate testBoardWin checks if either player has won the game*/
 testBoardWin(Board):-
     owin(Board) -> draw(Board), write('Player 2 WINS!');
     xwin(Board) -> draw(Board), write('Player 1 WINS!').
 
+/*predicate owin checks if there are any stones left from player 1*/
 owin([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD]):-
     A\='X',
     B\='X',
@@ -146,6 +169,7 @@ owin([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD]):-
     AC\='X',
     AD\='X'.
 
+/*predicate own checks if there are any stones left from player 2*/    
 xwin([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD]):-
     A\='O',
     B\='O',
@@ -178,6 +202,7 @@ xwin([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD]):-
     AC\='O',
     AD\='O'.
 
+/*predicate valid_moves checks if there are any legal moves for a player*/
 valid_moves(Board,Player) :-
     legal(Board,1,Player);
     legal(Board,2,Player);
@@ -210,10 +235,11 @@ valid_moves(Board,Player) :-
     legal(Board,29,Player);
     legal(Board,30,Player).
 
-
+/* predicate threeRow searches the board for a three in a row, line by line and column by column */
 threeRow(Board, Player) :- Player==1 -> linethreeRow(Board, 'X', 'O'); Player==2 -> linethreeRow(Board, 'O', 'X').
 threeRow(Board, Player) :- Player==1 -> colthreeRow(Board, 'X', 'O'); Player==2 -> colthreeRow(Board, 'O', 'X').
 
+/* predicate linethreeRow searches all the options for a three in a row in any line */
 linethreeRow(Board, Player, OtherPlayer) :- Board = [Player,Player,Player,' ',_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
 linethreeRow(Board, Player, OtherPlayer) :- Board = [Player,Player,Player,OtherPlayer,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
 linethreeRow(Board, Player, OtherPlayer) :- Board = [' ',Player,Player,Player,' ',_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_].
@@ -275,6 +301,7 @@ linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_
 linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,' ',Player,Player,Player].
 linethreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,OtherPlayer,Player,Player,Player].
 
+/* predicate colthreeRow searches all the options for a three in a row in any column */
 colthreeRow(Board, Player, OtherPlayer) :- Board = [Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' ',_,_,_,_,_,_,_,_,_,_,_].
 colthreeRow(Board, Player, OtherPlayer) :- Board = [_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' ',_,_,_,_,_,_,_,_,_,_].
 colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,' ',_,_,_,_,_,_,_,_,_].
@@ -323,7 +350,7 @@ colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,OtherPlaye
 colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player,_].
 colthreeRow(Board, Player, OtherPlayer) :- Board = [_,_,_,_,_,_,_,_,_,_,_,OtherPlayer,_,_,_,_,_,Player,_,_,_,_,_,Player,_,_,_,_,_,Player].
 
-
+/* predicate xmove changes the board acording to the arguments received to move a stone from player 1 ('X')*/
 xmove(['X',' ',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 1, 'd', [' ','X',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],2).
 xmove(['X',B,C,D,E,F,' ',H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 1, 's', [' ',B,C,D,E,F,'X',H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],2).
 xmove([' ','X',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 2, 'a', ['X',' ',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],2).
@@ -424,7 +451,7 @@ xmove([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,' ',Y,Z,AA,AB,AC,'X'],  30,
 xmove([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,' ','X'],  30, 'a', [A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,'X',' '],2).
 xmove(Board, _, _, Board,1) :- write('Illegal move.').
 
-
+/* predicate omove changes the board acording to the arguments received to move a stone from player 2 ('O')*/
 omove(['O',' ',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 1, 'd', [' ','O',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],1).
 omove(['O',B,C,D,E,F,' ',H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 1, 's', [' ',B,C,D,E,F,'O',H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],1).
 omove([' ','O',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 2, 'a', ['O',' ',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],1).
@@ -525,7 +552,7 @@ omove([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,' ',Y,Z,AA,AB,AC,'O'],  30,
 omove([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,' ','O'],  30, 'a', [A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,'O',' '],1).
 omove(Board, _, _, Board,2) :- write('Illegal move.').
 
-
+/*predicate valid checks if a certain move can be played*/
 valid([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],Cell,Player):-
     Cell==1 -> B\=Player, G\=Player, H\=Player, A==' ';
     Cell==2 -> A\=Player, G\=Player, H\=Player, I\=Player, C\=Player, B== ' ';
@@ -558,6 +585,7 @@ valid([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],Cell,Pla
     Cell==29 -> AD\=Player, X\=Player, W\=Player, AB\=Player, V\=Player,AC== ' ';
     Cell==30 -> X\=Player, W\=Player, AC\=Player,AD== ' '.    
 
+/*Predicates xplace, places a stone on a specific cell for the first player*/
 xplace([' ',B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 1, ['X',B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],2).
 xplace([A,' ',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 2, [A,'X',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],2).
 xplace([A,B,' ',D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 3, [A,B,'X',D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],2).
@@ -590,7 +618,7 @@ xplace([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,' ',AD],  29, 
 xplace([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,' '],  30, [A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,'X'],2).
 xplace(Board, _, Board,1) :- write('Illegal place.').
 
-
+/*Predicates oplace, places a stone on a specific cell for the second player*/
 oplace([' ',B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 1, ['O',B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],1).
 oplace([A,' ',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 2, [A,'O',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],1).
 oplace([A,B,' ',D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 3, [A,B,'O',D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD],1).
@@ -623,6 +651,7 @@ oplace([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,' ',AD],  29, 
 oplace([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,' '],  30, [A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,'O'],1).
 oplace(Board, _, Board,2) :- write('Illegal place.').
 
+/*predicate capture, deletes a stone from one of the players*/
 capture(Player,[Player,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 1, [' ',B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD]).
 capture(Player,[A,Player,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 2, [A,' ',C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD]).
 capture(Player,[A,B,Player,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD], 3, [A,B,' ',D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD]).
