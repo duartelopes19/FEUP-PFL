@@ -21,7 +21,7 @@ Regras do jogo foram consultadas [aqui](https://www.di.fc.ul.pt/~jpn/gv/wali.htm
 
 # **Lógica do Jogo**
 ## **Representação interna do estado do jogo**
-É utilizado um tabuleiro represetado por uma lista com 30 átomos. Inicialmente fizemos uma lista de listas no entanto, encontra-mos na internet o codigo já feito utilizando apenas uma lista e decidimos então copiar.
+É utilizado um tabuleiro represetado por uma lista com 30 átomos. As predras do jogador 1 são representadas por **X** e as do jogador 2 representadas por **O**.
 <br></br>
 
 ## **Visualização do estado de jogo**
