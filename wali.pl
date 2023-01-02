@@ -27,13 +27,13 @@ chooseGame(X):-
 draw([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD]):- nl, nl, write([A,B,C,D,E,F]), nl, write([G,H,I,J,K,L]), nl, write([M,N,O,P,Q,R]), nl, write([S,T,U,V,W,X]), nl, write([Y,Z,AA,AB,AC,AD]), nl, nl.
 
 testPlayerMoves(Board,Player):-
-    Player==1 -> testPlayer1Moves(Board,1);
-    Player==2 -> testPlayer2Moves(Board,2).
+    Player==1 -> testPlayerMovesX(Board,1);
+    Player==2 -> testPlayerMovesO(Board,2).
 
-testPlayer1Moves(Board,Player):- valid_moves(Board,Player) -> write(''); write('No valid moves left for Player 1!'), phaseOne(Board,2).
-testPlayer2Moves(Board,Player):- valid_moves(Board,Player) -> write(''); write('No valid moves left for Player 2!'), phaseOne(Board,1).
+testPlayerMovesX(Board,Player):- valid_moves(Board,Player) -> write(''); write('No valid moves left for Player 1!'), phaseOne(Board,2).
+testPlayerMovesO(Board,Player):- valid_moves(Board,Player) -> write(''); write('No valid moves left for Player 2!'), phaseOne(Board,1).
 
-testBoard(Board):- valid_moves(Board,2); valid_moves(Board,1). 
+testBoard(Board):- valid_moves(Board,2); valid_moves(Board,1).
 
 phaseOne(Board,Player):-
     testBoard(Board) ->(
@@ -53,7 +53,7 @@ phaseOne(Board,Player):-
     % NICE
 
 phaseTwo(Board,Player):-
-    testBoardWin(Board),
+    testBoardWin(Board) -> win(Board);
     nl, nl,
     write('2nd PHASE - MOVE'),
     draw(Board),
@@ -108,74 +108,75 @@ S  T  U  V  W  X
 Y  Z AA AB AC AD
 */
 
+win(Board):- nl,nl,halt(0).
+
 testBoardWin(Board):-
     owin(Board) -> draw(Board), write('Player 2 WINS!');
     xwin(Board) -> draw(Board), write('Player 1 WINS!').
 
-owin([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD]) :-
-    A \= 'X',
-    B \= 'X',
-    C \= 'X',
-    D \= 'X',
-    E \= 'X',
-    F \= 'X',
-    G \= 'X',
-    H \= 'X',
-    I \= 'X',
-    J \= 'X',
-    K \= 'X',
-    L \= 'X',
-    M \= 'X',
-    N \= 'X',
-    O \= 'X',
-    P \= 'X',
-    Q \= 'X',
-    R \= 'X',
-    S \= 'X',
-    T \= 'X',
-    U \= 'X',
-    V \= 'X',
-    W \= 'X',
-    X \= 'X',
-    Y \= 'X',
-    Z \= 'X',
-    AA \= 'X',
-    AB \= 'X',
-    AC \= 'X',
-    AD \= 'X'.
+owin([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD]):-
+    A\='X',
+    B\='X',
+    C\='X', 
+    D\='X',
+    E\='X',
+    F\='X',
+    G\='X',
+    H\='X',
+    I\='X',
+    J\='X',
+    K\='X',
+    L\='X',
+    M\='X',
+    N\='X',
+    O\='X',
+    P\='X',
+    Q\='X',
+    R\='X',
+    S\='X',
+    T\='X',
+    U\='X',
+    V\='X',
+    W\='X',
+    X\='X',
+    Y\='X',
+    Z\='X',
+    AA\='X',
+    AB\='X',
+    AC\='X',
+    AD\='X'.
 
-xwin([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD]) :-
-    A \= 'O',
-    B \= 'O',
-    C \= 'O',
-    D \= 'O',
-    E \= 'O',
-    F \= 'O',
-    G \= 'O',
-    H \= 'O',
-    I \= 'O',
-    J \= 'O',
-    K \= 'O',
-    L \= 'O',
-    M \= 'O',
-    N \= 'O',
-    O \= 'O',
-    P \= 'O',
-    Q \= 'O',
-    R \= 'O',
-    S \= 'O',
-    T \= 'O',
-    U \= 'O',
-    V \= 'O',
-    W \= 'O',
-    X \= 'O',
-    Y \= 'O',
-    Z \= 'O',
-    AA \= 'O',
-    AB \= 'O',
-    AC \= 'O',
-    AD \= 'O'.
-    
+xwin([A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD]):-
+    A\='O',
+    B\='O',
+    C\='O',
+    D\='O',
+    E\='O',
+    F\='O',
+    G\='O',
+    H\='O',
+    I\='O',
+    J\='O',
+    K\='O',
+    L\='O',
+    M\='O',
+    N\='O',
+    O\='O',
+    P\='O',
+    Q\='O',
+    R\='O',
+    S\='O',
+    T\='O',
+    U\='O',
+    V\='O',
+    W\='O',
+    X\='O',
+    Y\='O',
+    Z\='O',
+    AA\='O',
+    AB\='O',
+    AC\='O',
+    AD\='O'.
 
 valid_moves(Board,Player) :-
     legal(Board,1,Player);
